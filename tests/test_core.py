@@ -83,6 +83,10 @@ def test_custom_name_separator():
     assert Color.RED in (Color.RED | Color.BLUE)
     assert Color.RED in Color.MIXED
     assert Color.BLUE not in Color.MIXED
+    assert (Color.RED | Color.BLUE) not in Color.RED
+    assert Color.RED in (Color.RED | Color.BLUE)
+    assert (Color.RED | Color.BLUE) in (Color.RED | Color.BLUE)
+    assert (Color.RED | Color.BLUE) in (Color.RED | Color.BLUE | Color.GREEN)
 
 
 def test_validation():

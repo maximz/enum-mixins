@@ -1,4 +1,4 @@
-# Enum Mixins
+# Enum Mixins (WIP)
 
 [![](https://img.shields.io/pypi/v/enum_mixins.svg)](https://pypi.python.org/pypi/enum_mixins)
 [![CI](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml)
