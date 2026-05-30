@@ -1,19 +1,31 @@
-# Enum Mixins (WIP)
+# Enum Mixins
 
 [![](https://img.shields.io/pypi/v/enum_mixins.svg)](https://pypi.python.org/pypi/enum_mixins)
 [![CI](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml)
 [![](https://img.shields.io/badge/docs-here-blue.svg)](https://enum-mixins.maximz.com)
 [![](https://img.shields.io/github/stars/maximz/enum-mixins?style=social)](https://github.com/maximz/enum-mixins)
 
-## TODOs: Configuring this template
+`enum_mixins` is a small Python package of mixins for adding practical behavior
+to enum and flag classes, especially `aenum.Flag`.
 
-Create a Netlify site for your repository, then turn off automatic builds in Netlify settings.
+The package is pre-alpha and intentionally narrow: it provides runtime
+validation helpers, type-friendly flag iteration, non-null flag behavior, and
+custom names for combined flag values.
 
-Add these CI secrets: `PYPI_API_TOKEN`, `NETLIFY_AUTH_TOKEN` (Netlify user settings - personal access tokens), `DEV_NETLIFY_SITE_ID`, `PROD_NETLIFY_SITE_ID` (API ID from Netlify site settings)
+## What It Provides
 
-Set up Codecov at TODO
-
-## Overview
+- `IterableFlagMixin`: keeps `aenum.Flag` values iterable while giving the
+  iterator a useful type hint, and includes a helper for OR-ing a non-empty list
+  of flags into one combined flag value.
+- `ValidatableEnumMixin`: adds `validate(key)`, which accepts only values that
+  are instances of the enum class.
+- `ValidatableFlagMixin`: adds `validate_single_value(key)`, which rejects
+  combined flag values such as `Color.RED | Color.BLUE`.
+- `NonNullableFlagMixin`: rejects zero/null `aenum.Flag` values produced at
+  runtime, such as `Color(0)` or operations whose result is zero.
+- `CustomNameSeparatorFlagMixin`: customizes the separator used in generated
+  names for combined `aenum.Flag` values, for example `RED_BLUE` instead of
+  `RED|BLUE`.
 
 ## Installation
 
@@ -21,36 +33,82 @@ Set up Codecov at TODO
 pip install enum_mixins
 ```
 
-## Usage
+The package requires Python 3.8 or newer and depends on `aenum` and
+`typing-extensions`.
 
-## Development
-
-Submit PRs against `develop` branch, then make a release pull request to `master`.
+For local development:
 
 ```bash
-# Optional: set up a pyenv virtualenv
-pyenv virtualenv 3.9 enum_mixins-3.9
-echo "enum_mixins-3.9" > .python-version
-pyenv version
-
-# Install requirements
-pip install --upgrade pip wheel
 pip install -r requirements_dev.txt
-
-# Install local package
 pip install -e .
-
-# Install pre-commit
-pre-commit install
-
-# Run tests
 make test
-
-# Run lint
 make lint
-
-# bump version before submitting a PR against master (all master commits are deployed)
-bump2version patch # possible: major / minor / patch
-
-# also ensure CHANGELOG.md updated
 ```
+
+## Usage
+
+Place mixins before `aenum.Flag` in the class bases:
+
+```python
+import aenum
+from enum_mixins import (
+    CustomNameSeparatorFlagMixin,
+    IterableFlagMixin,
+    NonNullableFlagMixin,
+    ValidatableFlagMixin,
+)
+
+
+class Color(
+    IterableFlagMixin,
+    ValidatableFlagMixin,
+    NonNullableFlagMixin,
+    CustomNameSeparatorFlagMixin,
+    aenum.Flag,
+):
+    __default_separator__ = "_"
+
+    RED = aenum.auto()
+    BLUE = aenum.auto()
+    GREEN = aenum.auto()
+    MIXED = RED | GREEN
+
+
+Color.validate(Color.RED)
+Color.validate(Color.RED | Color.BLUE)
+
+Color.validate_single_value(Color.RED)
+# Color.validate_single_value(Color.RED | Color.BLUE) raises ValueError
+
+(Color.RED | Color.BLUE).name
+# "RED_BLUE"
+
+list(Color.RED | Color.BLUE)
+# [Color.RED, Color.BLUE]
+
+Color(0)
+# raises ValueError
+```
+
+`CustomNameSeparatorFlagMixin` only changes generated combined names. If a
+combined value is explicitly named in the enum, such as `MIXED = RED | GREEN`,
+the defined enum name is preserved.
+
+## Behavior Notes
+
+The validation mixins work at runtime: `validate()` checks that the value is an
+instance of the enum class, and `validate_single_value()` additionally checks
+that exactly one flag is set. They do not parse strings or coerce external
+values into enum members.
+
+`NonNullableFlagMixin` is intended for `aenum.Flag`. The current tests cover
+runtime zero-value rejection, but class-definition-time rejection of an explicit
+zero member is marked as expected-fail.
+
+`IterableFlagMixin.combine_flags_list_into_single_multiflag_value()` uses
+`functools.reduce`, so it expects at least one flag in the list.
+
+## Project Status
+
+Version `0.0.1` is marked as pre-alpha in the package metadata. The project is
+MIT licensed.
