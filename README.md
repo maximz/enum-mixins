@@ -1,5 +1,10 @@
 # Enum Mixins
 
+[![](https://img.shields.io/pypi/v/enum_mixins.svg)](https://pypi.python.org/pypi/enum_mixins)
+[![CI](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/maximz/enum-mixins/actions/workflows/ci.yaml)
+[![](https://img.shields.io/badge/docs-here-blue.svg)](https://enum-mixins.maximz.com)
+[![](https://img.shields.io/github/stars/maximz/enum-mixins?style=social)](https://github.com/maximz/enum-mixins)
+
 `enum_mixins` is a small Python package of mixins for adding practical behavior
 to enum and flag classes, especially `aenum.Flag`.
 
